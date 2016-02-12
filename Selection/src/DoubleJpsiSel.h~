@@ -1,0 +1,346 @@
+// $Id: $
+#ifndef DOUBLEJPSISEL_H 
+#define DOUBLEJPSISEL_H 1
+
+// Include files
+// from DaVinci, this is a specialized GaudiAlgorithm
+
+//#include "Kernel/DVAlgorithm.h"
+#include "Kernel/IDVAlgorithm.h"
+#include "Kernel/DaVinciTupleAlgorithm.h"
+#include "Kernel/RichParticleIDType.h"
+#include "Event/CaloHypo.h"
+#include <TrackInterfaces/ITrackFitter.h>
+#include "TrackInterfaces/IPVOfflineTool.h"
+#include "TrackInterfaces/IHitExpectation.h"
+#include "TrackInterfaces/IVeloExpectation.h"
+#include "Kernel/IHepMC2MC.h"
+#include "VeloDet/DeVelo.h"
+#include "GaudiKernel/ToolHandle.h"
+
+#include "GaudiKernel/IAlgTool.h"
+#include "GaudiAlg/GaudiAlgorithm.h"
+#include "Event/ProtoParticle.h"
+#include "Kernel/IBackgroundCategory.h"
+#include "Kernel/IHepMC2MC.h"
+#include "MCInterfaces/IMCReconstructible.h"
+#include "MCInterfaces/IMCReconstructed.h"
+//====reconstructible stuff (redundant?)
+#include "GaudiAlg/GaudiTool.h"
+#include "Kernel/IMCParticleTupleTool.h"
+#include "Kernel/Particle2MCLinker.h"
+#include <string>
+#include <vector>
+ 
+#include "LoKi/CoreCuts.h"
+
+#include "LoKi/Particles36.h"
+
+#include "Kernel/ITriggerTisTos.h"
+
+class IMCReconstructible;
+class IMCReconstructed;
+class IParticle2MCAssociator;
+
+#include <MCInterfaces/IMCReconstructible.h>
+
+// ===========================================================================
+// Relations 
+// ===========================================================================
+#include "Relations/IRelationWeighted.h"
+#include "Relations/RelationWeighted.h"
+#include "Relations/IRelationWeighted2D.h"
+#include "Relations/RelationWeighted2D.h"
+// ===========================================================================
+// LoKiPhysMC 
+// ===========================================================================
+#include "Kernel/Track2MC.h"
+
+// ===========================================================================
+// LinkerEvent 
+// ===========================================================================
+#include "Linker/LinkedTo.h"
+#include "Linker/LinkedFrom.h"
+// ===========================================================================
+// ============================================================================
+// DaVinciInterfaces 
+// ============================================================================
+#include "Kernel/IDecayTreeFit.h"
+#include "Kernel/IParticleReFitter.h"
+
+#include "LoKi/Interface.h"
+#include "LoKi/PhysTypes.h"
+#include "LoKi/AuxDTFBase.h"
+#include "LoKi/ChildSelector.h"
+
+class ILHCbMagnetSvc;
+class MCReconstructed;
+class MCReconstructible;
+class IBackgroundCategory;
+class IParticle2MCAssociator;
+class ITrackStateProvider;
+class ILifetimeFitter;
+
+/** @class DoubleJpsiSel DoubleJpsiSel.h
+ *  
+ *
+ *  @author Andrew David Cook
+ *  @date   2010-11-15
+ */
+class DoubleJpsiSel : public DaVinciTupleAlgorithm {
+public: 
+  /// Standard constructor
+  DoubleJpsiSel( const std::string& name, ISvcLocator* pSvcLocator );
+
+  virtual ~DoubleJpsiSel( ); ///< Destructor
+
+  virtual StatusCode initialize();    ///< Algorithm initialization
+  virtual StatusCode execute   ();    ///< Algorithm execution
+  virtual StatusCode finalize  ();    ///< Algorithm finalization
+
+  //virtual bool isReconstructibleAs(const IMCReconstructible::RecCategory& category,const LHCb::MCParticle* mcPart ) const;
+
+
+// ============================================================================
+// Track state provider
+// ============================================================================
+private:
+  ToolHandle<ITrackStateProvider> m_stateProvider;
+
+
+protected:
+  double m_maxJpsiChi2;
+  double m_maxJpsiMass;
+  double m_minJpsiMass;
+
+  double m_maxMuChi2NDof;
+  double m_minMuDll;
+  double m_minMuPt;
+  double m_minMomentum;
+  
+  double m_maxDTFChi2Ndof;
+
+private:
+  IMCReconstructible        *m_recible;
+  IMCReconstructed          *m_rected;
+  IDVAlgorithm               *m_dva;
+
+  // IDVAlgorithm              *m_idva;
+  const IDistanceCalculator *m_dist;
+
+  double m_chargedThetaMin ;
+  double m_chargedThetaMax ;
+  double m_neutralThetaMin ;
+  double m_neutralThetaMax ;
+
+  std::vector<std::string>           m_backCatTypes;
+  std::vector<IBackgroundCategory *> m_bkgs;
+  std::vector<std::string>           m_backCatInputTable;
+
+  std::vector<IParticle2MCAssociator*> m_p2mcAssocs;
+  std::vector<std::string>             m_p2mcAssocTypes;
+
+  IParticle2MCAssociator *m_associator;
+  std::string             m_associatorType;
+
+
+protected:
+  bool m_verbose;
+  bool m_fillAllJpsi;
+  bool m_fillSelectedJpsi;
+  bool m_fillAllDoubleJpsi;
+  bool m_fillSelectedDoubleJpsi;
+  bool m_MCTen;
+  bool m_MCTruth;
+  bool m_fillMCTruthTuple;
+  bool m_NoAccCutMC;
+  
+  int m_selFillDll;
+  int m_pidMuon;
+  int m_pidChiB21P;
+  int m_pidPsi2S;
+  unsigned int m_tck;
+protected:
+  std::string                m_TriggerTisTosName;
+  std::string                m_L0TriggerTisTosName;
+
+  std::vector<std::string>   m_HLT1TISList;
+  std::vector<std::string>   m_HLT1TOSList;
+  std::vector<std::string>   m_HLT2TISList;
+  std::vector<std::string>   m_HLT2TOSList;
+  std::vector<std::string>   m_L0TISList;
+  std::vector<std::string>   m_L0TOSList;
+
+
+  std::vector<std::string>   m_hlt1TriggerList;
+  std::vector<std::string>   m_hlt2TriggerList;
+  std::vector<std::string>   m_l0TriggerList;
+
+// ============================================================================
+// InputType
+// ============================================================================
+protected:
+  std::string m_inputType;
+
+
+// ============================================================================
+// Fill ntuples about analyzed particles.
+// ============================================================================
+protected:
+  void FillAnalysisDoubleJpsiMuMu(Tuples::Tuple &,        const LHCb::Particle *,
+                                  const LHCb::Particle *, const LHCb::Particle *,
+                                  const LHCb::Particle *, const LHCb::Particle *,
+                                  const LHCb::Particle *, const LHCb::Particle *,
+                                  const LHCb::Particle *,const LHCb::Particle *,
+                                  const LHCb::Particle *);
+
+ void FillAnalysisDoubleJpsiMuMu(Tuples::Tuple &,        const LHCb::Particle *,
+                                  const LHCb::Particle *, const LHCb::Particle *,
+                                  const LHCb::Particle *, const LHCb::Particle *,
+                                  const LHCb::Particle *, const LHCb::Particle *);
+
+  void FillDataEventNtuple(Tuples::Tuple &);
+  void FillDataComposite(Tuples::Tuple &, const LHCb::Particle *, const std::string);
+  void FillDataParticle(Tuples::Tuple &, const LHCb::Particle *, const std::string);
+  void FillDataImpactParameter(Tuples::Tuple &, const LHCb::Particle *, const std::string);
+  void FillDataPolarizationNtuple(Tuples::Tuple &, const LHCb::Particle *,
+                                  const LHCb::Particle *, const std::string);
+  void FillDataTransverseAngleNtuple(Tuples::Tuple &, const LHCb::Particle *,
+                                     const LHCb::Particle *, const std::string);
+  const LHCb::Particle *GetParticles(const LHCb::Particle *, int, int);
+
+  const LHCb::MCParticle *GetMCParticles(const LHCb::MCParticle *, int, int);
+
+  StatusCode DoubleJpsiCheckMuons(const LHCb::Particle *,
+                                  const LHCb::Particle *,
+                                  const LHCb::Particle *,
+                                  const LHCb::Particle *);
+
+  void FillDataPropertime(Tuples::Tuple        &ntuple,
+                          const LHCb::Particle *p,
+                          const std::string     prefix);
+  
+  StatusCode ProperTime(const LHCb::Particle *mother,
+                         double               *tau,
+                         double               *tauErr,
+                  double               *tauChi2);
+  
+
+ 
+private:
+  IHepMC2MC          *m_Hep2MC;
+
+
+// ============================================================================
+// Fill ntuple with MC information
+// ============================================================================
+protected:
+  void FillMCAncestor(Tuples::Tuple &,     const LHCb::MCParticle *, const std::string);
+  void FillMCComposite(Tuples::Tuple &,    const LHCb::MCParticle *, const std::string);
+  void FillMCParticle(Tuples::Tuple &,     const LHCb::MCParticle *, const std::string);
+  void FillMCPolarization(Tuples::Tuple &, const LHCb::MCParticle *, const LHCb::MCParticle *, const std::string);
+
+
+// ============================================================================
+// Lifetime fitter
+// ==========================================================================
+private:
+  ILifetimeFitter* m_fitLifetime;
+
+
+private:
+  int                       m_pidJpsi;
+  LHCb::ParticleID           m_jPsiID;
+  double                     m_jPsiMass;
+  IMCReconstructible  *m_reconstructible;
+  IMCReconstructed    *m_reconstructed;
+  ITriggerTisTos            *m_TriggerTisTosTool;
+  ITriggerTisTos            *m_L0TriggerTisTosTool;
+  ILHCbMagnetSvc            *m_magnetSvc;
+
+  StatusCode FromBDTFTest(const LHCb::Particle::Range &jpsi);
+  StatusCode MCTruth();
+  StatusCode MCTruthTest();
+  StatusCode MCTruthDoubleJpsi();
+  StatusCode MCTruthOld();
+  StatusCode MCTenLoop(const LHCb::Particle::Range& muons);
+  StatusCode loopOnMC(bool)const ;
+  StatusCode loopOnTrks(bool MC, const LHCb::Particle::ConstVector&)const ;
+  StatusCode MakeJpsi(const LHCb::Particle::Range&) ;
+  StatusCode MakeDoubleJpsi(const LHCb::Particle::Range&) ;
+  StatusCode MarcoLoopOnJpsi(const LHCb::Particle::Range&) ;
+  StatusCode MarcoNewLoopOnJpsi(const LHCb::Particle::Range&) ;
+
+  StatusCode DaughtersInAcceptance(const LHCb::Particle::Range &);
+  bool AccCheckMCTruth(const HepMC::GenParticle*)const;
+
+  bool IsStable(int pdgid) const;
+  bool IsHepStable(const HepMC::GenParticle* mcpart) const;
+  bool FromJpsi() const;
+  bool TrackToMC(const LHCb::Track* part_trk, LHCb::ParticleID partid)const;
+  bool ParticleToMC(const LHCb::Particle particle, LHCb::ParticleID partid)const;
+  double DoubleTrackToHEPMCOld(const LHCb::Track* part_trkP,const LHCb::Track* part_trkN)const;
+  double CheckMCTruth(const LHCb::Track* part_trkP,const LHCb::Track* part_trkN)const;
+  bool TrackToHEPMCNoPromptCut(const LHCb::Track* part_trk)const;
+
+  double TrackToMCMass(const LHCb::Track* part_trk)const;
+
+  void FillEventNtuple(Tuples::Tuple &);
+
+  void FillDataTrackGhostProb(Tuples::Tuple     &ntuple,
+                              const LHCb::Track *track,
+                              const std::string  prefix);
+
+  void FillDataDTF(Tuples::Tuple      &ntuple,
+			  const LHCb::Vertex *v,
+                                  const std::string   prefix);
+  
+  void FillDataMCTruth(Tuples::Tuple      &ntuple,
+                        const double motherPID,
+                        const std::string   prefix);
+
+
+ void FillDataMCTruth(Tuples::Tuple      &ntuple,
+                      const LHCb::Particle *p,
+                        const std::string   prefix);
+
+
+  void FillDataPid(Tuples::Tuple &ntuple,
+                   const LHCb::Particle *p,
+                   const std::string     prefix);
+  
+
+
+  void FillFourMuonNtuple(Tuples::Tuple &,
+			  const LHCb::Particle *,
+			  const std::string);
+  void FillJpsiNtuple(Tuples::Tuple &,
+		      const LHCb::Particle *,
+		      const std::string);
+  void FillMuNtuple(Tuples::Tuple &,
+		    const LHCb::Particle *,
+		    const std::string);
+  void FillMotherNtuple(Tuples::Tuple &,
+			const LHCb::Particle *,
+			const Gaudi::Math::ParticleParams *,
+			const std::string);
+  void FillPolarizationNtuple(Tuples::Tuple &,
+			      const LHCb::Particle *,
+			      const LHCb::Particle *,
+			      const std::string);
+  void ImpactParameter(const LHCb::Particle *,
+		       double               *,
+		       double               *);
+
+
+  const LHCb::Particle *GetMuon(const LHCb::Particle *,
+				int);
+
+  void FillMCTrueJpsiNtuple(Tuples::Tuple &, const LHCb::MCParticle *, const std::string);
+  void FillMCTrueMuNtuple(Tuples::Tuple &, const LHCb::MCParticle *, const std::string);
+  void FillMCTruePolarizationNtuple(Tuples::Tuple &, const LHCb::MCParticle *,
+				    const LHCb::MCParticle *, const std::string);
+
+  double m_jPsiMassWin; 
+};
+#endif // DOUBLEJPSISEL_H
